@@ -17,7 +17,7 @@ const sub = {
     // ------------------------------------------
     payWithPhonePe() {
         // Developer Note: Yahan 'your_upi_id@ybl' ko apne asli UPI ID se replace karein!
-        const upiId = "your_upi_id@ybl"; 
+        const upiId = "debabrat1985@axl"; 
         const payeeName = "DEBABRAT SWAIN";
         const amount = "499.00";
         const transactionNote = "MemoryFlip Studio Pro Upgrade";
