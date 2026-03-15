@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#6c5ce7">
+    <title>MemoryFlip Studio Ultra - Pro SaaS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 30 Next-Level Premium Fonts Loaded -->
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Bebas+Neue&family=Cinzel&family=Dancing+Script&family=Dosis&family=Fira+Sans&family=Inconsolata&family=Josefin+Sans&family=Lato&family=Lobster&family=Lora&family=Merriweather&family=Montserrat&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Pacifico&family=Playfair+Display&family=Poppins&family=PT+Serif&family=Quicksand&family=Raleway&family=Righteous&family=Roboto&family=Titillium+Web&family=Ubuntu&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs (Compat version for stable Vanilla JS integration) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-logo pulse-animation"><i class="fas fa-book-open"></i></div>
+        <h1 class="splash-text">MemoryFlip<span>Ultra</span></h1>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <!-- ========================================== -->
+    <!-- 🔐 AUTHENTICATION SYSTEM (NEW)             -->
+    <!-- ========================================== -->
+    <div id="auth-container" class="auth-wrapper" style="display: none;">
+        
+        <!-- LOGIN SCREEN -->
+        <div id="login-box" class="auth-box glass-panel active">
+            <div class="text-center mb-2">
+                <i class="fas fa-book-open text-primary" style="font-size: 3rem;"></i>
+                <h2 class="mt-1">Welcome Back</h2>
+                <p class="text-light">Sign in to your MemoryFlip Studio</p>
+            </div>
+            <form id="login-form" onsubmit="event.preventDefault(); auth.login();">
+                <label>Email Address</label>
+                <input type="email" id="login-email" required placeholder="Enter your email">
+                <label>Password</label>
+                <input type="password" id="login-password" required placeholder="Enter your password">
+                
+                <div class="flex-row justify-between align-center mt-1" style="font-size: 0.85rem;">
+                    <a href="#" onclick="auth.showScreen('forgot-box')" class="text-primary text-bold">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="btn-primary full-width mt-2 ripple" id="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            <div class="text-center mt-2" style="font-size: 0.9rem;">
+                Don't have an account? <a href="#" onclick="auth.showScreen('signup-box')" class="text-primary text-bold">Create Account</a>
+            </div>
+        </div>
+
+        <!-- SIGNUP SCREEN -->
+        <div id="signup-box" class="auth-box glass-panel">
+            <div class="text-center mb-2">
+                <h2 class="mt-1">Create Account</h2>
+                <p class="text-light">Join MemoryFlip Ultra today!</p>
+            </div>
+            <form id="signup-form" onsubmit="event.preventDefault(); auth.signup();">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" required placeholder="e.g. John Doe">
+                
+                <label>Username (Unique)</label>
+                <input type="text" id="reg-username" required placeholder="e.g. johndoe99">
+                
+                <label>Email Address</label>
+                <input type="email" id="reg-email" required placeholder="e.g. john@example.com">
+                
+                <label>Mobile Number</label>
+                <input type="tel" id="reg-mobile" required pattern="[0-9]{10,15}" placeholder="e.g. 9876543210">
+                
+                <div class="flex-row mt-1">
+                    <div style="flex:1">
+                        <label>Date of Birth</label>
+                        <input type="date" id="reg-dob" required>
+                    </div>
+                    <div style="flex:1">
+                        <label>Gender</label>
+                        <select id="reg-gender" required>
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Password</label>
+                <input type="password" id="reg-password" required placeholder="Min 6 characters" minlength="6">
+                
+                <label>Confirm Password</label>
+                <input type="password" id="reg-confirm-password" required placeholder="Re-enter password" minlength="6">
+                
+                <button type="submit" class="btn-success full-width mt-2 ripple" id="btn-signup">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+            <div class="text-center mt-2" style="font-size: 0.9rem;">
+                Already have an account? <a href="#" onclick="auth.showScreen('login-box')" class="text-primary text-bold">Sign In</a>
+            </div>
+        </div>
+
+        <!-- FORGOT PASSWORD SCREEN -->
+        <div id="forgot-box" class="auth-box glass-panel">
+            <div class="text-center mb-2">
+                <h2 class="mt-1">Reset Password</h2>
+                <p class="text-light">Enter your email to receive a reset link.</p>
+            </div>
+            <form id="forgot-form" onsubmit="event.preventDefault(); auth.resetPassword();">
+                <label>Registered Email</label>
+                <input type="email" id="reset-email" required placeholder="Enter your email">
+                
+                <button type="submit" class="btn-primary full-width mt-2 ripple" id="btn-reset">
+                    <i class="fas fa-paper-plane"></i> Send Reset Link
+                </button>
+            </form>
+            <div class="text-center mt-2" style="font-size: 0.9rem;">
+                Remembered your password? <a href="#" onclick="auth.showScreen('login-box')" class="text-primary text-bold">Back to Login</a>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 📱 MAIN APP CONTAINER (Protected)          -->
+    <!-- ========================================== -->
+    <div id="app" style="display: none;">
+
+        <!-- 1. HOME VIEW -->
+        <section id="view-home" class="view active">
+            <header class="glass-header">
+                <div class="logo"><i class="fas fa-book-open text-primary"></i> MemoryFlip<span class="pro-badge">Ultra</span></div>
+                <div class="header-profile" onclick="app.vibrate(); app.navigateTo('profile')">
+                    <img id="nav-profile-pic" src="https://via.placeholder.com/40" alt="Profile">
+                </div>
+            </header>
+            <div class="container" style="display:flex; align-items:center; height: 80vh;">
+                <div style="text-align:center; width:100%;">
+                    <h1 style="font-size: 3.5rem; background: -webkit-linear-gradient(45deg, var(--primary), #00d2d3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Turn Memories Into Living Books</h1>
+                    <p class="text-light mt-1" style="font-size: 1.2rem; max-width: 600px; margin: 15px auto 30px auto;">Create stunning digital flipbooks of your favorite life moments. Equipped with 30+ patterns, smart positioning, and a 3D engine.</p>
+                    <button class="btn-primary ripple" style="font-size: 1.2rem; padding: 15px 40px; border-radius: 30px;" onclick="app.vibrate(); app.navigateTo('dashboard')"><i class="fas fa-magic"></i> Enter Studio</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view">
+            <header class="glass-header">
+                <div class="logo"><i class="fas fa-layer-group text-primary"></i> My Library</div>
+            </header>
+            <div class="container pb-nav">
+                <div class="dashboard-header">
+                    <h2>Your Creations</h2>
+                    <button class="btn-primary desktop-only ripple" onclick="app.vibrate(); app.createNewBook()"><i class="fas fa-plus"></i> Create Book</button>
+                </div>
+                <!-- Skeleton Loader for Dashboard -->
+                <div id="dashboard-skeleton" class="grid hidden">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+                <div id="books-grid" class="grid"></div>
+            </div>
+            <button class="fab mobile-only ripple pulse-animation" onclick="app.vibrate(); app.createNewBook()"><i class="fas fa-plus"></i></button>
+        </section>
+
+        <!-- 3. PROFILE VIEW (NEW) -->
+        <section id="view-profile" class="view">
+            <header class="glass-header">
+                <div class="logo"><i class="fas fa-user-circle text-primary"></i> My Profile</div>
+            </header>
+            <div class="container pb-nav mt-2">
+                <div class="design-box text-center p-2 profile-header-card">
+                    <div class="profile-pic-wrapper relative" style="width:120px; height:120px; margin:0 auto;">
+                        <img id="profile-image-display" src="https://via.placeholder.com/120" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border: 4px solid var(--primary);">
+                        <label for="profile-upload" class="edit-pic-btn"><i class="fas fa-camera"></i></label>
+                        <input type="file" id="profile-upload" accept="image/*" class="hidden" onchange="auth.uploadProfileImage(event)">
+                    </div>
+                    <h2 id="profile-name-display" class="mt-1">Loading...</h2>
+                    <p class="text-light" id="profile-username-display">@username</p>
+                    <div class="mt-1">
+                        <span id="profile-badge-display" class="pro-badge" style="font-size: 0.8rem; padding: 5px 12px;">FREE MEMBER</span>
+                    </div>
+                </div>
+
+                <div class="design-box mt-2">
+                    <div class="p-2">
+                        <h3 class="section-title"><i class="fas fa-info-circle"></i> Personal Information</h3>
+                        <form id="profile-edit-form" onsubmit="event.preventDefault(); auth.updateProfile();">
+                            <label>Full Name</label>
+                            <input type="text" id="edit-name" required>
+                            
+                            <label>Username</label>
+                            <input type="text" id="edit-username" readonly style="opacity: 0.6;" title="Username cannot be changed">
+                            
+                            <label>Email Address</label>
+                            <input type="email" id="edit-email" readonly style="opacity: 0.6;" title="Email cannot be changed">
+                            
+                            <label>Mobile Number</label>
+                            <input type="tel" id="edit-mobile" required>
+                            
+                            <div class="flex-row mt-1">
+                                <div style="flex:1">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="edit-dob" required>
+                                </div>
+                                <div style="flex:1">
+                                    <label>Gender</label>
+                                    <select id="edit-gender" required>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-success full-width mt-2 ripple" id="btn-update-profile">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SUBSCRIPTION VIEW (NEW) -->
+        <section id="view-subscription" class="view">
+            <header class="glass-header">
+                <div class="logo"><i class="fas fa-crown text-primary"></i> Upgrade to Pro</div>
+            </header>
+            <div class="container pb-nav mt-2">
+                <div class="text-center mb-2">
+                    <h1 style="font-size: 2.5rem;">Unlock The <span class="text-primary">Ultimate</span> Power</h1>
+                    <p class="text-light mt-1">Get access to all 30+ Themes, Pro Fonts, Digital Guestbook, and remove watermarks forever!</p>
+                </div>
+
+                <div class="flex-row" style="flex-wrap: wrap; align-items: stretch;">
+                    <!-- FREE CARD -->
+                    <div class="pricing-card glass-panel" style="flex: 1; min-width: 300px; opacity: 0.8;">
+                        <h3>Free Tier</h3>
+                        <h2 style="font-size: 2.5rem;">₹0</h2>
+                        <ul class="pricing-features mt-2">
+                            <li><i class="fas fa-check text-success"></i> Basic Layouts</li>
+                            <li><i class="fas fa-check text-success"></i> Default Patterns</li>
+                            <li><i class="fas fa-times text-danger"></i> No Premium Themes</li>
+                            <li><i class="fas fa-times text-danger"></i> Watermark Included</li>
+                        </ul>
+                        <button class="btn-outline full-width mt-2" disabled>Current Plan</button>
+                    </div>
+
+                    <!-- PRO CARD -->
+                    <div class="pricing-card glass-panel pro-card" style="flex: 1; min-width: 300px; border: 2px solid var(--primary); transform: scale(1.05); box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);">
+                        <div class="pro-badge absolute-top">MOST POPULAR</div>
+                        <h3>Pro Membership</h3>
+                        <h2 style="font-size: 2.5rem; color: var(--primary);">₹499 <span style="font-size:1rem; color:#888;">/lifetime</span></h2>
+                        <ul class="pricing-features mt-2">
+                            <li><i class="fas fa-star text-primary"></i> 30+ 1-Click Smart Themes</li>
+                            <li><i class="fas fa-star text-primary"></i> 12+ Layouts & Scrapbook UI</li>
+                            <li><i class="fas fa-star text-primary"></i> Digital Guestbook Active</li>
+                            <li><i class="fas fa-star text-primary"></i> Remove Watermark</li>
+                            <li><i class="fas fa-star text-primary"></i> 30+ Realistic Textures</li>
+                        </ul>
+                        <button class="btn-primary full-width mt-2 ripple pulse-animation" onclick="sub.showPaymentScreen()">
+                            <i class="fas fa-crown"></i> Upgrade Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================= -->
+            <!-- QR CODE PAYMENT MODAL (UPDATED WITH PHONEPE)  -->
+            <!-- ============================================= -->
+            <div id="payment-modal" class="modal">
+                <div class="modal-content glass-panel bottom-sheet text-center" style="max-width: 400px;">
+                    <div class="sheet-handle"></div>
+                    <h2 class="text-primary"><i class="fas fa-qrcode"></i> Scan & Pay</h2>
+                    <p class="text-light mt-1">Scan the PhonePe QR code below to upgrade to Pro.</p>
+                    
+                    <!-- Developer Note: Aapna QR Code image yahan lagayein -->
+                    <div class="qr-wrapper mt-2 mb-1" style="background: white; padding: 15px; border-radius: 15px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <img src="dev.png" alt="PhonePe Payment QR" style="width: 250px; height: 250px; object-fit: contain;">
+                    </div>
+
+                    <!-- DIRECT PHONEPE APP OPEN BUTTON -->
+                    <button class="btn-phonepe full-width mt-1 ripple pulse-animation" onclick="sub.payWithPhonePe()">
+                        Pay Directly via PhonePe
+                    </button>
+                    
+                    <h3 class="mt-1">Amount: ₹499</h3>
+                    
+                    <div class="mt-2 text-left" style="background: rgba(243, 156, 18, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #f39c12;">
+                        <p style="font-size: 0.85rem; color: #d35400;">
+                            <i class="fas fa-exclamation-triangle"></i> If you pay by scanning on another device, click "I Have Paid" below to verify.
+                        </p>
+                    </div>
+
+                    <button class="btn-success full-width mt-2 ripple" id="btn-i-have-paid" onclick="sub.processPayment()">
+                        <i class="fas fa-check-circle"></i> I Have Paid
+                    </button>
+                    <button class="btn-icon full-width mt-1" style="color:var(--danger)" onclick="app.closeModal('payment-modal')">Cancel</button>
+                </div>
+            </div>
+            
+            <!-- ============================================= -->
+            <!-- PAYMENT SUCCESS MODAL (UPDATED)               -->
+            <!-- ============================================= -->
+            <div id="payment-success-modal" class="modal">
+                <div class="modal-content glass-panel bottom-sheet text-center" style="max-width: 400px;">
+                    <i class="fas fa-check-circle text-success" style="font-size: 5rem; margin-bottom: 20px;"></i>
+                    <h2>Payment Successful!</h2>
+                    
+                    <!-- Dynamic Pro Message -->
+                    <p class="mt-1 text-light" id="success-dynamic-msg" style="line-height: 1.6; font-size:1.1rem; color:var(--primary); font-weight:bold;">
+                        Now, you are a pro member. Enjoy unlimited access!
+                    </p>
+
+                    <!-- BACK TO APPLICATION BUTTON -->
+                    <button class="btn-primary full-width mt-2 ripple" onclick="sub.completeUpgradeAndReturn()">
+                        <i class="fas fa-arrow-left"></i> Back to Application
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. SETTINGS VIEW (UPDATED) -->
+        <section id="view-settings" class="view">
+            <header class="glass-header">
+                <div class="logo"><i class="fas fa-cog text-primary"></i> Settings</div>
+            </header>
+            <div class="container pb-nav mt-2">
+                <div class="design-box">
+                    <div class="p-2 flex-row justify-between align-center">
+                        <div>
+                            <h3><i class="fas fa-moon text-primary"></i> Dark Mode</h3>
+                            <p class="text-light" style="font-size:0.85rem;">Toggle dark theme for night viewing.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="theme-toggle" onchange="app.vibrate(); app.toggleTheme()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="design-box mt-2">
+                    <div class="p-2">
+                        <h3><i class="fas fa-crown text-primary"></i> About Application</h3>
+                        <p class="text-light mt-1" style="font-size:0.95rem; line-height:1.6;">A Premium SaaS Application equipped with 30+ Patterns, Smart Positioning, Interactive Scrapbook, Time Capsule, Auth System, and a 3D Engine.</p>
+                        <div class="mt-2 text-bold" style="background:rgba(108, 92, 231, 0.1); padding:10px; border-radius:8px; color:var(--primary); text-align:center;">Version 6.0.0 (Cloud Sync Enabled)</div>
+                    </div>
+                </div>
+
+                <button class="btn-danger full-width mt-2 ripple" onclick="auth.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </section>
+
+        <!-- BOTTOM NAVIGATION BAR (UPDATED) -->
+        <nav id="bottom-nav" class="bottom-nav glass-header">
+            <button class="nav-item active" onclick="app.vibrate(); app.navigateTo('home')"><i class="fas fa-home"></i><span>Home</span></button>
+            <button class="nav-item" onclick="app.vibrate(); app.navigateTo('dashboard')"><i class="fas fa-layer-group"></i><span>Library</span></button>
+            <button class="nav-item" onclick="app.vibrate(); app.navigateTo('subscription')"><i class="fas fa-crown"></i><span>Pro</span></button>
+            <button class="nav-item" onclick="app.vibrate(); app.navigateTo('profile')"><i class="fas fa-user"></i><span>Profile</span></button>
+            <button class="nav-item" onclick="app.vibrate(); app.navigateTo('settings')"><i class="fas fa-cog"></i><span>Settings</span></button>
+        </nav>
+
+        <!-- ========================================== -->
+        <!-- 🎨 EDITOR VIEW (Existing Code Unchanged)   -->
+        <!-- ========================================== -->
+        <section id="view-editor" class="view full-screen-view">
+            <div class="editor-layout">
+                <div class="editor-toolbar glass-header">
+                    <button onclick="app.vibrate(); app.navigateTo('dashboard')" class="btn-icon ripple"><i class="fas fa-arrow-left"></i> <span class="hide-mobile">Back</span></button>
+                    <div class="tools">
+                        <span id="save-status">Saved</span>
+                        <button onclick="app.vibrate(); app.openExportModal()" class="btn-success ripple" title="Export Book"><i class="fas fa-file-export"></i> <span class="hide-mobile">Export</span></button>
+                        <button onclick="app.vibrate(); app.forceSave()" class="btn-outline ripple" title="Save Book"><i class="fas fa-save"></i> <span class="hide-mobile">Save</span></button>
+                        <button onclick="app.vibrate(); app.openViewer()" class="btn-primary ripple" title="Preview Book"><i class="fas fa-eye"></i> <span class="hide-mobile">Preview</span></button>
+                    </div>
+                </div>
+
+                <div class="editor-workspace">
+                    <div class="editor-preview">
+                        <div class="preview-wrapper"><div id="live-preview-container"></div></div>
+                    </div>
+
+                    <div class="editor-sidebar">
+                        <div class="tabs">
+                            <button class="tab active ripple" onclick="app.vibrate(); app.switchEditorTab('cover')">Cover</button>
+                            <button class="tab ripple" onclick="app.vibrate(); app.switchEditorTab('pages')">Pages (<span id="page-count">0</span>/50)</button>
+                        </div>
+                        
+                        <!-- COVER TAB -->
+                        <div id="tab-cover" class="tab-content active">
+                            <label>Book Title</label><input type="text" id="cover-title" oninput="app.updateBookData()">
+                            <label>Subtitle</label><input type="text" id="cover-subtitle" oninput="app.updateBookData()">
+                            <label>Author / Created By</label><input type="text" id="cover-author" oninput="app.updateBookData()">
+                            
+                            <!-- 30 SMART THEMES FEATURE -->
+                            <details class="design-box mt-2" open>
+                                <summary><i class="fas fa-magic"></i> 1-Click Smart Themes <span class="pro-badge">👑 Pro</span></summary>
+                                <div class="p-2">
+                                    <p class="text-light mb-1" style="font-size: 0.8rem;">Instantly redesign your entire book with a professional theme.</p>
+                                    <div class="flex-row">
+                                        <select id="smart-theme-select" style="flex:1;">
+                                            <option value="romantic">❤️ Romantic Vibes</option><option value="vintage">📜 Vintage Elegance</option>
+                                            <option value="dark-academia">🎓 Dark Academia</option><option value="cyberpunk">🦾 Cyberpunk Neon</option>
+                                            <option value="minimalist">⬜ Minimalist Clean</option><option value="neon-party">🪩 Neon Party</option>
+                                            <option value="wedding-elegance">💍 Wedding Elegance</option><option value="classic-noir">🎞️ Classic Noir</option>
+                                            <option value="retro-80s">📻 Retro 80s</option><option value="sci-fi">🛸 Sci-Fi Future</option>
+                                            <option value="nature-bliss">🌿 Nature Bliss</option><option value="ocean-breeze">🌊 Ocean Breeze</option>
+                                            <option value="sunset-glow">🌅 Sunset Glow</option><option value="pastel-dream">🌸 Pastel Dream</option>
+                                            <option value="gold-luxury">🏆 Gold Luxury</option><option value="gothic">🦇 Gothic Shadow</option>
+                                            <option value="space-galaxy">🌌 Space Galaxy</option><option value="autumn-leaves">🍂 Autumn Leaves</option>
+                                            <option value="winter-chill">❄️ Winter Chill</option><option value="spring-blossom">🌺 Spring Blossom</option>
+                                            <option value="royal-purple">👑 Royal Purple</option><option value="steampunk">⚙️ Steampunk</option>
+                                            <option value="boho-chic">🧶 Boho Chic</option><option value="comic-book">💥 Comic Book</option>
+                                            <option value="polaroid-memories">📸 Polaroid Memories</option><option value="corporate-clean">💼 Corporate Clean</option>
+                                            <option value="art-deco">🎷 Art Deco</option><option value="holographic">🪩 Holographic</option>
+                                            <option value="grunge">🎸 Grunge Style</option><option value="tropical">🏝️ Tropical Vibe</option>
+                                        </select>
+                                        <button class="btn-primary" onclick="app.applySmartTheme(document.getElementById('smart-theme-select').value)">Apply</button>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <!-- Global SaaS Settings -->
+                            <details class="design-box mt-2" open>
+                                <summary><i class="fas fa-star"></i> Global SaaS Settings</summary>
+                                <div class="p-2" style="background: rgba(108, 92, 231, 0.05);">
+                                    
+                                    <!-- ADVANCED CUSTOM WATERMARK -->
+                                    <label>MemoryFlip Watermark</label>
+                                    <select id="cover-watermark" onchange="app.updateBookData()">
+                                        <option value="true">Show Default Watermark</option>
+                                        <option value="false">Remove Watermark 👑 Pro</option>
+                                        <option value="custom">Create Your Own Watermark 👑 Pro</option>
+                                    </select>
+                                    
+                                    <div id="custom-watermark-box" class="mt-1 hidden" style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                                        <h4 class="section-title">Design Your Watermark</h4>
+                                        <label>Watermark Text</label><input type="text" id="cw-text" placeholder="e.g., John's Memories" oninput="app.updateBookData()">
+                                        <label>Font Style</label>
+                                        <select id="cw-font" class="s-font-master" onchange="app.updateBookData()">
+                                            <!-- 30 Fonts Injected via JS -->
+                                        </select>
+                                        <label>Position in Book</label>
+                                        <select id="cw-position" onchange="app.updateBookData()">
+                                            <option value="bottom-right">Bottom Right</option><option value="bottom-left">Bottom Left</option>
+                                            <option value="top-right">Top Right</option><option value="top-left">Top Left</option>
+                                            <option value="center">Center</option><option value="top-center">Top Center</option>
+                                            <option value="bottom-center">Bottom Center</option>
+                                        </select>
+                                        <label>Color Fill Type</label>
+                                        <select id="cw-fill" onchange="app.updateBookData()">
+                                            <option value="solid">Solid Color</option><option value="gradient">Gradient Color</option>
+                                        </select>
+                                        <label>Primary Color</label><input type="color" id="cw-color1" oninput="app.updateBookData()">
+                                        <div id="cw-grad-box" class="hidden"><label>Secondary Color</label><input type="color" id="cw-color2" oninput="app.updateBookData()"></div>
+                                    </div>
+
+                                    <!-- 30 DIGITAL GUESTBOOK DESIGNS -->
+                                    <label class="mt-1">Digital Guestbook (Last Page) <span class="pro-badge">👑 Pro</span></label>
+                                    <select id="cover-guestbook" onchange="app.updateBookData()">
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled (Let viewers leave a note)</option>
+                                    </select>
+                                    <div id="guestbook-design-box" class="hidden mt-1" style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                                        <label style="margin-top:0;">Guestbook Design Theme</label>
+                                        <select id="cover-guestbook-design" onchange="app.updateBookData()">
+                                            <option value="cork-yellow">Corkboard & Yellow Notes</option><option value="fridge-polaroid">Fridge & Polaroids</option>
+                                            <option value="whiteboard-marker">Whiteboard & Marker</option><option value="darkwood-neon">Dark Wood & Neon</option>
+                                            <option value="leather-gold">Leather & Gold Text</option><option value="marble-rose">Marble & Rose Gold</option>
+                                            <option value="canvas-paint">Canvas & Paint Strokes</option><option value="denim-patch">Denim & Patches</option>
+                                            <option value="chalkboard-chalk">Chalkboard & Chalk</option><option value="glass-frost">Frosted Glass</option>
+                                            <option value="space-stars">Space & Star Notes</option><option value="ocean-sand">Ocean Sand Text</option>
+                                            <option value="sunset-polaroid">Sunset Polaroids</option><option value="pastel-clouds">Pastel Clouds</option>
+                                            <option value="vintage-stamps">Vintage Stamps</option><option value="steampunk-gears">Steampunk Gears</option>
+                                            <option value="cyberpunk-glitch">Cyberpunk Glitch</option><option value="nature-leaves">Nature Leaves</option>
+                                            <option value="royal-velvet">Royal Velvet & Wax Seal</option><option value="grunge-spray">Grunge Spray Paint</option>
+                                            <option value="minimal-clean">Minimal Clean Board</option><option value="boho-macrame">Boho Macrame</option>
+                                            <option value="comic-bubbles">Comic Speech Bubbles</option><option value="holographic-glow">Holographic Glow</option>
+                                            <option value="autumn-wood">Autumn Wood & Tags</option><option value="winter-ice">Winter Ice Board</option>
+                                            <option value="spring-floral">Spring Floral Board</option><option value="art-deco-gold">Art Deco Gold</option>
+                                            <option value="corporate-slate">Corporate Slate</option><option value="tropical-palm">Tropical Palm Leaves</option>
+                                        </select>
+                                    </div>
+
+                                    <label class="mt-1">Password Protection <span class="pro-badge">👑 Pro</span></label>
+                                    <input type="text" id="cover-password" placeholder="Leave empty for public" oninput="app.updateBookData()">
+                                </div>
+                            </details>
+
+                            <!-- Cover Background Design -->
+                            <details class="design-box mt-2">
+                                <summary><i class="fas fa-fill-drip"></i> Cover Background</summary>
+                                <div class="p-2">
+                                    <label>Background Type</label>
+                                    <select id="cover-bg-type" onchange="app.updateBookData()">
+                                        <option value="image">Image Upload</option>
+                                        <option value="solid">Solid Color</option>
+                                        <option value="gradient">Gradient Ultra</option>
+                                        <option value="pattern">CSS Patterns (30+)</option>
+                                        <option value="texture">Realistic Textures (30+ Pro)</option>
+                                    </select>
+                                    
+                                    <div id="cover-bg-image-box" class="mt-1">
+                                        <label>Upload Cover Photo</label>
+                                        <div class="file-upload-wrapper"><input type="file" accept="image/*" onchange="app.handleImageUpload(event, 'cover')"></div>
+                                        <label class="mt-1">Dark Overlay Opacity (Text Visibility)</label>
+                                        <input type="range" id="cover-overlay-op" min="0" max="9" value="4" oninput="app.updateBookData()">
+                                    </div>
+                                    
+                                    <div id="cover-bg-pattern-box" class="mt-1 hidden">
+                                        <label>Select Pattern Style</label>
+                                        <select id="cover-bg-pattern" onchange="app.updateBookData()"></select>
+                                    </div>
+
+                                    <!-- 30 REALISTIC TEXTURES -->
+                                    <div id="cover-bg-texture-box" class="mt-1 hidden">
+                                        <label>Select Material Texture <span class="pro-badge">👑</span></label>
+                                        <select id="cover-bg-texture" onchange="app.updateBookData()">
+                                            <option value="leather">Premium Leather</option><option value="vintage">Vintage Parchment</option>
+                                            <option value="kraft">Kraft Cardboard</option><option value="crumpled">Crumpled Paper</option>
+                                            <option value="wood-grain">Wood Grain</option><option value="marble">White Marble</option>
+                                            <option value="concrete">Raw Concrete</option><option value="canvas">Painting Canvas</option>
+                                            <option value="silk">Smooth Silk</option><option value="denim">Blue Denim</option>
+                                            <option value="carbon-fiber">Carbon Fiber</option><option value="brushed-metal">Brushed Metal</option>
+                                            <option value="brick-wall">Brick Wall</option><option value="sandpaper">Rough Sandpaper</option>
+                                            <option value="water-ripples">Water Ripples</option><option value="frost-glass">Frosted Glass</option>
+                                            <option value="cork-board">Cork Board</option><option value="woven-basket">Woven Basket</option>
+                                            <option value="chalkboard">Chalkboard</option><option value="linen">Soft Linen</option>
+                                            <option value="rusty-metal">Rusty Metal</option><option value="stucco">Stucco Wall</option>
+                                            <option value="granite">Dark Granite</option><option value="watercolor">Watercolor Stains</option>
+                                            <option value="gold-foil">Gold Foil</option><option value="silver-foil">Silver Foil</option>
+                                            <option value="holo-foil">Holographic Foil</option><option value="velvet">Red Velvet</option>
+                                            <option value="snake-skin">Snake Skin</option><option value="dragon-scale">Dragon Scale</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="cover-bg-grad-type-box" class="mt-1 hidden">
+                                        <label>Gradient Style</label>
+                                        <select id="cover-bg-grad-type" onchange="app.updateBookData()">
+                                            <option value="linear-135">Linear (Top Left to Bottom Right)</option><option value="linear-to-bottom">Linear (Top to Bottom)</option>
+                                            <option value="radial-center">Radial (Center Burst)</option><option value="radial-tl">Radial (Top Left Origin)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="cover-bg-color-box" class="mt-1 hidden"><label>Base Color</label><input type="color" id="cover-bg-color" oninput="app.updateBookData()"></div>
+                                    <div id="cover-bg-gradient-box" class="mt-1 hidden">
+                                        <label>Primary Color</label><input type="color" id="cover-bg-grad1" oninput="app.updateBookData()">
+                                        <label>Secondary Color</label><input type="color" id="cover-bg-grad2" oninput="app.updateBookData()">
+                                    </div>
+                                    <button class="btn-primary full-width mt-1 ripple" onclick="app.vibrate(); app.forceSave()"><i class="fas fa-check"></i> Apply Background</button>
+                                </div>
+                            </details>
+
+                            <!-- Cover Text Styling -->
+                            <details class="design-box mt-1" id="cover-style-details" ontoggle="app.loadStyleInputs('cover')">
+                                <summary><i class="fas fa-font"></i> Advanced Design & Position</summary>
+                                <div class="p-2">
+                                    <label>Select Text to Edit</label>
+                                    <select id="style-target-cover" onchange="app.loadStyleInputs('cover')">
+                                        <option value="all">Apply to All Elements</option><option value="title">Book Title</option>
+                                        <option value="subtitle">Subtitle</option><option value="author">Author</option>
+                                    </select>
+                                    <div class="style-controls mt-1">
+                                        <h4 class="section-title mt-2"><i class="fas fa-arrows-alt-v"></i> Smart Positioning</h4>
+                                        <label>Push Down</label><input type="range" class="s-margin-top" min="0" max="150" value="0" oninput="app.updateStyleData('cover')">
+                                        <label>Push Up</label><input type="range" class="s-margin-bottom" min="0" max="150" value="0" oninput="app.updateStyleData('cover')">
+
+                                        <h4 class="section-title mt-2"><i class="fas fa-text-height"></i> Typography</h4>
+                                        <select class="s-font s-font-master mb-half" onchange="app.updateStyleData('cover')"></select>
+                                        
+                                        <div class="flex-row">
+                                            <select class="s-align" onchange="app.updateStyleData('cover')"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select>
+                                            <select class="s-weight" onchange="app.updateStyleData('cover')" title="Font Weight"><option value="400">Normal</option><option value="700">Bold</option><option value="900">Black</option></select>
+                                            <select class="s-style" onchange="app.updateStyleData('cover')" title="Font Style"><option value="normal">Normal</option><option value="italic">Italic</option></select>
+                                        </div>
+                                        <label class="mt-1">Letter Spacing</label><input type="range" class="s-spacing" min="-3" max="20" value="0" oninput="app.updateStyleData('cover')">
+                                        
+                                        <h4 class="section-title mt-2"><i class="fas fa-palette"></i> Colors & Effects</h4>
+                                        <label>Text Fill Style</label><select class="s-fill mb-half" onchange="app.updateStyleData('cover')"><option value="solid">Solid Color</option><option value="gradient">Gradient Color</option></select>
+                                        <div class="s-color-box"><input type="color" class="s-color" oninput="app.updateStyleData('cover')"></div>
+                                        <div class="s-gradient-box hidden"><div class="flex-row"><input type="color" class="s-g1" oninput="app.updateStyleData('cover')"> <input type="color" class="s-g2" oninput="app.updateStyleData('cover')"></div></div>
+                                        
+                                        <label class="mt-1">Text Outline</label><div class="flex-row"><input type="range" class="s-stroke-w" min="0" max="10" value="0" oninput="app.updateStyleData('cover')"><input type="color" class="s-stroke-c" oninput="app.updateStyleData('cover')"></div>
+                                        <label class="mt-1">Box Outline</label><div class="flex-row"><select class="s-border-s" onchange="app.updateStyleData('cover')"><option value="none">None</option><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select><input type="range" class="s-border-w" min="0" max="10" value="0" oninput="app.updateStyleData('cover')"><input type="color" class="s-border-c" oninput="app.updateStyleData('cover')"></div>
+                                        <label class="mt-1">Drop Shadow</label><div class="flex-row"><input type="range" class="s-shadow-blur" min="0" max="20" value="0" oninput="app.updateStyleData('cover')"><input type="color" class="s-shadow-c" oninput="app.updateStyleData('cover')"></div>
+                                        <button class="btn-primary full-width mt-1 ripple" onclick="app.vibrate(); app.applyStyles('cover')"><i class="fas fa-check"></i> Apply Design</button>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- PAGES TAB -->
+                        <div id="tab-pages" class="tab-content">
+                            <div id="pages-list"></div>
+                            <button class="btn-outline full-width mt-1 ripple" onclick="app.vibrate(); app.addMemoryPage()"><i class="fas fa-plus"></i> Add Memory Page</button>
+                        </div>
+
+                        <!-- Page Editor -->
+                        <div id="page-editor-fields" class="mt-2 hidden">
+                            <hr style="border-top:1px solid var(--border); margin-bottom:15px;">
+                            <h3>Edit Page <span id="current-page-num" class="text-primary"></span></h3>
+                            
+                            <!-- UPGRADED: Layout & Interactive Scrapbook & Frames -->
+                            <details class="design-box mt-1" open>
+                                <summary><i class="fas fa-image"></i> Media, Layout & Frames</summary>
+                                <div class="p-2">
+                                    <label>Page Layout Engine <span class="pro-badge">👑 Pro</span></label>
+                                    <select id="page-layout" onchange="app.updatePageData()">
+                                        <option value="top-img">Image Top, Text Bottom</option>
+                                        <option value="bottom-img">Text Top, Image Bottom</option>
+                                        <option value="overlay-img">Full Background Image + Glass Overlay</option>
+                                        <option value="split-left">Split Half: Image Left</option>
+                                        <option value="split-right">Split Half: Image Right</option>
+                                        <option value="diagonal-split">Diagonal Split Cover</option>
+                                        <option value="circle-center">Circular Image Center</option>
+                                        <option value="overlap-card">Overlap Floating Card</option>
+                                        <option value="polaroid-scatter">Scattered Polaroid Style</option>
+                                        <option value="letterbox">Cinematic Letterbox</option>
+                                        <option value="diamond-center">Diamond Shape Center</option>
+                                        <option value="magazine">Magazine Editorial Layout</option>
+                                    </select>
+
+                                    <label class="mt-1">Interactive Scrapbook Element <span class="pro-badge">👑 Pro</span></label>
+                                    <select id="page-scrapbook" onchange="app.updatePageData()">
+                                        <option value="none">None (Standard Image)</option>
+                                        <option value="scratch">Scratch-to-Reveal (Rub screen)</option>
+                                        <option value="envelope">Secret Envelope (Pull out photo)</option>
+                                        <option value="washi-tape">Washi Tape Corners</option>
+                                        <option value="push-pin">Red Push Pin Top</option>
+                                        <option value="paper-clip">Silver Paper Clip</option>
+                                        <option value="photo-corners">Vintage Photo Corners</option>
+                                        <option value="wax-seal">Wax Seal Reveal</option>
+                                        <option value="folded-corner">Folded Corner</option>
+                                        <option value="hanging-string">Hanging on a String</option>
+                                    </select>
+
+                                    <label class="mt-1">Upload Page Photo</label>
+                                    <div class="file-upload-wrapper"><input type="file" accept="image/*" id="page-img-input" onchange="app.handleImageUpload(event, 'page')"></div>
+                                    <label>Image Fitting</label><select id="page-img-fit" onchange="app.updatePageData()"><option value="cover">Fill Area (Crop)</option><option value="contain">Show Full Image (Fit)</option></select>
+                                    
+                                    <label class="mt-1">Aesthetic Photo Frame</label>
+                                    <select id="page-img-frame" onchange="app.updatePageData()">
+                                        <option value="none">None (Default)</option>
+                                        <option value="polaroid">Vintage Polaroid 📸</option>
+                                        <option value="film">Film Roll 🎞️</option>
+                                        <option value="torn">Torn Paper Edge 📄</option>
+                                        <option value="stamp">Postage Stamp 📮</option>
+                                        <option value="neon">Glowing Neon 🪩</option>
+                                        <option value="gold">Brushed Gold 🏆</option>
+                                        <option value="wood">Vintage Wood Frame 🪵</option>
+                                        <option value="museum">Museum Mat Board 🖼️</option>
+                                        <option value="stitched">Stitched Leather 🪡</option>
+                                        <option value="frosted">Frosted Glass 🧊</option>
+                                        <option value="watercolor">Watercolor Edge 🎨</option>
+                                        <option value="brush">Brush Stroke 🖌️</option>
+                                        <option value="burnt">Burnt Paper Edge 🔥</option>
+                                        <option value="floral">Floral Border 🌸</option>
+                                    </select>
+                                    
+                                    <h4 class="section-title mt-2">Image Border & Shadows</h4>
+                                    <label>Border Radius</label><input type="range" id="f-radius" min="0" max="50" value="0" oninput="app.updatePageFilters()">
+                                    <label>Drop Shadow</label><input type="range" id="f-shadow" min="0" max="40" value="0" oninput="app.updatePageFilters()">
+                                    <h4 class="section-title mt-2">Image Filters</h4>
+                                    <label>Brightness</label><input type="range" id="f-bright" min="50" max="150" value="100" oninput="app.updatePageFilters()">
+                                    <label>Contrast</label><input type="range" id="f-contrast" min="50" max="150" value="100" oninput="app.updatePageFilters()">
+                                    <label>Grayscale</label><input type="range" id="f-gray" min="0" max="100" value="0" oninput="app.updatePageFilters()">
+                                    <label>Sepia</label><input type="range" id="f-sepia" min="0" max="100" value="0" oninput="app.updatePageFilters()">
+                                </div>
+                            </details>
+
+                            <!-- Premium Feature: Background Particles -->
+                            <details class="design-box mt-1">
+                                <summary><i class="fas fa-fill-drip"></i> Page Background & FX</summary>
+                                <div class="p-2">
+                                    <label>3D Particle Effects <span class="pro-badge">👑 Pro</span></label>
+                                    <select id="page-particles" onchange="app.updatePageData()">
+                                        <option value="none">No Effects</option>
+                                        <option value="hearts">Falling Hearts ❤️</option>
+                                        <option value="snow">Winter Snow ❄️</option>
+                                        <option value="confetti">Birthday Confetti 🎉</option>
+                                        <option value="stars">Magic Stars ✨</option>
+                                    </select>
+                                    
+                                    <label class="mt-1">Background Type</label>
+                                    <select id="page-bg-type" onchange="app.updatePageBackground()">
+                                        <option value="solid">Solid Color</option><option value="gradient">Gradient Ultra</option>
+                                        <option value="pattern">CSS Patterns (30+)</option><option value="texture">Realistic Textures (30+ Pro)</option>
+                                    </select>
+                                    <div id="page-bg-pattern-box" class="mt-1 hidden"><label>Select Pattern</label><select id="page-bg-pattern" onchange="app.updatePageBackground()"></select></div>
+                                    <div id="page-bg-texture-box" class="mt-1 hidden">
+                                        <label>Select Texture <span class="pro-badge">👑</span></label>
+                                        <select id="page-bg-texture" onchange="app.updatePageBackground()">
+                                            <option value="leather">Premium Leather</option><option value="vintage">Vintage Parchment</option>
+                                            <option value="kraft">Kraft Cardboard</option><option value="crumpled">Crumpled Paper</option>
+                                            <option value="wood-grain">Wood Grain</option><option value="marble">White Marble</option>
+                                            <!-- Additional textures injected similarly -->
+                                        </select>
+                                    </div>
+                                    <div id="page-bg-grad-type-box" class="mt-1 hidden"><label>Gradient Style</label><select id="page-bg-grad-type" onchange="app.updatePageBackground()"><option value="linear-135">Linear</option><option value="radial-center">Radial</option></select></div>
+                                    <div id="page-bg-color-box" class="mt-1"><label>Base Color</label><input type="color" id="page-bg-color" oninput="app.updatePageBackground()"></div>
+                                    <div id="page-bg-gradient-box" class="mt-1 hidden"><label>Color 1</label><input type="color" id="page-bg-grad1" oninput="app.updatePageBackground()"><label>Color 2</label><input type="color" id="page-bg-grad2" oninput="app.updatePageBackground()"></div>
+                                </div>
+                            </details>
+
+                            <!-- LIVE TITLE UPDATE -->
+                            <label class="mt-1">Title</label><input type="text" id="page-title" oninput="app.updatePageData()" placeholder="E.g., Our First Date">
+                            
+                            <div class="mt-1 p-2" style="background: rgba(108, 92, 231, 0.05); border-radius: 8px; border: 1px dashed var(--primary);">
+                                <label style="margin-top:0;"><i class="fas fa-lock text-primary"></i> Time Capsule (Unlock Date) <span class="pro-badge">👑 Pro</span></label>
+                                <p class="text-light mb-1" style="font-size:0.75rem;">Page will remain locked and blurred for viewers until this date.</p>
+                                <input type="date" id="page-unlock-date" oninput="app.updatePageData()">
+                            </div>
+
+                            <div class="flex-row mt-1">
+                                <div style="flex:1"><label>Date</label><input type="date" id="page-date" oninput="app.updatePageData()"></div>
+                                <div style="flex:1"><label>Mood</label>
+                                    <select id="page-mood" onchange="app.updatePageData()"><option value="Happy 😊">Happy 😊</option><option value="Nostalgic 🥺">Nostalgic 🥺</option><option value="Excited 🤩">Excited 🤩</option><option value="Loved ❤️">Loved ❤️</option></select>
+                                </div>
+                            </div>
+                            <label>Place</label><input type="text" id="page-place" oninput="app.updatePageData()" placeholder="E.g., Central Park">
+                            <label>Memory / Description</label><textarea id="page-desc" rows="5" oninput="app.updatePageData()" placeholder="Write your memory here..."></textarea>
+
+                            <!-- Page Text Styling -->
+                            <details class="design-box mt-1" id="page-style-details" ontoggle="app.loadStyleInputs('page')">
+                                <summary><i class="fas fa-font"></i> Page Design & Position</summary>
+                                <div class="p-2">
+                                    <label>Select Text</label>
+                                    <select id="style-target-page" onchange="app.loadStyleInputs('page')"><option value="all">Apply to All</option><option value="title">Title</option><option value="desc">Description</option><option value="meta">Date/Place</option></select>
+                                    <div class="style-controls mt-1">
+                                        <h4 class="section-title mt-2"><i class="fas fa-arrows-alt-v"></i> Smart Positioning</h4>
+                                        <label>Push Down</label><input type="range" class="s-margin-top" min="0" max="150" value="0" oninput="app.updateStyleData('page')">
+                                        <label>Push Up</label><input type="range" class="s-margin-bottom" min="0" max="150" value="0" oninput="app.updateStyleData('page')">
+
+                                        <h4 class="section-title mt-2"><i class="fas fa-text-height"></i> Typography</h4>
+                                        <select class="s-font s-font-master mb-half" onchange="app.updateStyleData('page')"></select>
+                                        <div class="flex-row">
+                                            <select class="s-align" onchange="app.updateStyleData('page')"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select>
+                                            <select class="s-weight" onchange="app.updateStyleData('page')"><option value="400">Normal</option><option value="700">Bold</option><option value="900">Black</option></select>
+                                            <select class="s-style" onchange="app.updateStyleData('page')"><option value="normal">Normal</option><option value="italic">Italic</option></select>
+                                        </div>
+                                        <label class="mt-1">Letter Spacing</label><input type="range" class="s-spacing" min="-3" max="20" value="0" oninput="app.updateStyleData('page')">
+
+                                        <h4 class="section-title mt-2"><i class="fas fa-palette"></i> Colors & Effects</h4>
+                                        <label>Text Fill Style</label><select class="s-fill mb-half" onchange="app.updateStyleData('page')"><option value="solid">Solid Color</option><option value="gradient">Gradient Color</option></select>
+                                        <div class="s-color-box"><input type="color" class="s-color" oninput="app.updateStyleData('page')"></div>
+                                        <div class="s-gradient-box hidden"><div class="flex-row"><input type="color" class="s-g1" oninput="app.updateStyleData('page')"> <input type="color" class="s-g2" oninput="app.updateStyleData('page')"></div></div>
+                                        <label class="mt-1">Stroke</label><div class="flex-row"><input type="range" class="s-stroke-w" min="0" max="10" value="0" oninput="app.updateStyleData('page')"><input type="color" class="s-stroke-c" oninput="app.updateStyleData('page')"></div>
+                                        <label class="mt-1">Outline Style</label><div class="flex-row"><select class="s-border-s" onchange="app.updateStyleData('page')"><option value="none">None</option><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select><input type="range" class="s-border-w" min="0" max="10" value="0" oninput="app.updateStyleData('page')"><input type="color" class="s-border-c" oninput="app.updateStyleData('page')"></div>
+                                        <label class="mt-1">Shadow</label><div class="flex-row"><input type="range" class="s-shadow-blur" min="0" max="20" value="0" oninput="app.updateStyleData('page')"><input type="color" class="s-shadow-c" oninput="app.updateStyleData('page')"></div>
+                                        <button class="btn-primary full-width mt-1 ripple" onclick="app.vibrate(); app.applyStyles('page')"><i class="fas fa-check"></i> Apply Design</button>
+                                    </div>
+                                </div>
+                            </details>
+                            <button class="btn-danger full-width mt-2 ripple" onclick="app.vibrate(); app.deletePage(app.state.currentPageIndex)"><i class="fas fa-trash"></i> Delete Page Completely</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. FLIPBOOK VIEWER VIEW -->
+        <section id="view-viewer" class="view full-screen-view">
+            <div class="viewer-toolbar">
+                <button onclick="app.vibrate(); app.closeViewer()" class="btn-icon ripple glass-btn"><i class="fas fa-times"></i> Close</button>
+                <button onclick="app.vibrate(); app.openShareModal()" class="btn-whatsapp ripple glass-btn"><i class="fas fa-share-alt"></i> Share & Export</button>
+            </div>
+            
+            <div class="flipbook-container" id="flipbook-container"></div>
+            
+            <div class="viewer-controls glass-panel">
+                <button class="ripple" onclick="app.vibrate(); app.flipPage('prev')"><i class="fas fa-chevron-left"></i> Prev</button>
+                <span id="viewer-page-counter" class="text-bold" style="min-width: 60px; text-align:center;">Cover</span>
+                <button class="ripple" onclick="app.vibrate(); app.flipPage('next')">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- SHARE/EXPORT MODAL -->
+        <div id="share-modal" class="modal">
+            <div class="modal-content glass-panel bottom-sheet">
+                <div class="sheet-handle"></div>
+                <h2><i class="fas fa-share-alt text-primary"></i> Share & Export</h2>
+                <p class="text-light mt-1">Share this living memory book with your friends & family!</p>
+                
+                <input type="text" id="share-link" readonly value="" class="mt-2 text-center" style="font-weight: bold; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);">
+                
+                <div id="qr-code-box" class="mt-2 text-center hidden">
+                    <img id="qr-code-img" src="" style="width:140px; height: 140px; border-radius:12px; border:3px solid var(--primary); padding: 5px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <p class="text-primary mt-1 text-bold" style="font-size:0.85rem;"><i class="fas fa-qrcode"></i> Scan to Open</p>
+                </div>
+                
+                <div class="share-buttons mt-2" style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-outline ripple" style="flex:1" onclick="app.vibrate(); app.copyShareLink()"><i class="fas fa-copy"></i> Copy</button>
+                    <button class="btn-whatsapp ripple" style="flex:1" onclick="app.vibrate(); app.shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                </div>
+                <hr style="border-top:1px solid rgba(0,0,0,0.1); margin:15px 0;">
+                <button class="btn-success full-width ripple" onclick="app.vibrate(); app.exportAsPDF()"><i class="fas fa-file-pdf"></i> Export Book as PDF <span class="pro-badge" style="background:white; color:black; box-shadow:none;">Pro</span></button>
+
+                <button class="btn-icon full-width mt-2" style="color:var(--danger); margin-top:15px;" onclick="app.closeModal('share-modal')">Close</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- NAYE SCRIPTS (Sequence matter karta hai) -->
+    <script src="auth.js"></script>
+    <script src="subscription.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
